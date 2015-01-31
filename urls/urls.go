@@ -1,4 +1,4 @@
-package url
+package urls
 
 import (
   "math/rand"
@@ -27,6 +27,7 @@ type Repository interface {
   FindById(id string) *Url
   FindByUrl(url string) *Url
   Save(url Url) error
+  RegisterClick(id string)
 }
 
 var repo Repository
@@ -68,4 +69,8 @@ func generateId() string {
 
 func Search(id string) *Url {
   return repo.FindById(id)
+}
+
+func RegisterClick(id string) {
+  repo.RegisterClick(id)
 }

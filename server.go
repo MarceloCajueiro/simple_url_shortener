@@ -7,12 +7,13 @@ import (
   "strings"
   "time"
 
-  "github.com/marcelocajueiro/url_shortener/url"
+  "github.com/marcelocajueiro/url_shortener/urls"
 )
 
 var (
   port    int
   urlBase string
+  stats   chan   string
 )
 
 func init() {
@@ -21,6 +22,10 @@ func init() {
 }
 
 func main() {
+  stats = make (chan string)
+  defer close (stats)
+  go newStatistic(stats)
+
   http.HandleFunc("/api/shorten", Shortener)
   http.HandleFunc("/r/", Redirector)
 
@@ -42,7 +47,7 @@ func Shortener(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  url, new, err := url.FindOrCreateNewUrl(extractUrl(r))
+  url, new, err := urls.FindOrCreateNewUrl(extractUrl(r))
 
   if err != nil {
     respondWith(w, http.StatusBadRequest, nil)
@@ -65,8 +70,9 @@ func Redirector(w http.ResponseWriter, r *http.Request) {
   path := strings.Split(r.URL.Path, "/")
   id := path[len(path) -1]
 
-  if url := url.Search(id); url != nil {
+  if url := urls.Search(id); url != nil {
     http.Redirect(w, r, url.Destiny, http.StatusMovedPermanently)
+    stats <- id
   } else {
     http.NotFound(w, r)
   }
@@ -83,4 +89,11 @@ func extractUrl(r *http.Request) string {
   url := make([]byte, r.ContentLength, r.ContentLength)
   r.Body.Read(url)
   return string (url)
+}
+
+func newStatistic(ids <-chan string) {
+  for id := range ids {
+    urls.RegisterClick(id)
+    fmt.Printf("Click in %s.\n", id)
+  }
 }
