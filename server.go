@@ -14,7 +14,6 @@ import (
 var (
   port    int
   urlBase string
-  stats   chan   string
 )
 
 func init() {
@@ -23,17 +22,20 @@ func init() {
 }
 
 func main() {
-  stats = make (chan string)
+  stats := make (chan string)
   defer close (stats)
   go newStatistic(stats)
 
   http.HandleFunc("/api/shorten", Shortener)
-  http.HandleFunc("/r/", Redirector)
+  http.Handle("/r/", &Redirector{stats})
   http.HandleFunc("/api/stats/", StatsViewer)
 
   log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }
 
+type Redirector struct {
+  stats chan string
+}
 type Headers map[string]string
 type Url struct {
   Id        string
@@ -71,13 +73,13 @@ func Shortener(w http.ResponseWriter, r *http.Request) {
   })
 }
 
-func Redirector(w http.ResponseWriter, r *http.Request) {
+func (red *Redirector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
   path := strings.Split(r.URL.Path, "/")
   id := path[len(path) -1]
 
   if url := urls.Search(id); url != nil {
     http.Redirect(w, r, url.Destiny, http.StatusMovedPermanently)
-    stats <- id
+    red.stats <- id
   } else {
     http.NotFound(w, r)
   }
