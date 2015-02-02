@@ -74,22 +74,14 @@ func Shortener(w http.ResponseWriter, r *http.Request) {
 }
 
 func (red *Redirector) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-  path := strings.Split(r.URL.Path, "/")
-  id := path[len(path) -1]
-
-  if url := urls.Search(id); url != nil {
+  findUrlAndExecute(w, r, func (url *urls.Url) {
     http.Redirect(w, r, url.Destiny, http.StatusMovedPermanently)
-    red.stats <- id
-  } else {
-    http.NotFound(w, r)
-  }
+    red.stats <- url.Id
+  })
 }
 
 func StatsViewer(w http.ResponseWriter, r *http.Request) {
-  path := strings.Split(r.URL.Path, "/")
-  id := path[len(path) -1]
-
-  if url := urls.Search(id); url != nil {
+  findUrlAndExecute(w, r, func (url *urls.Url) {
     json, err := json.Marshal(url.Stats())
 
     if err != nil {
@@ -98,6 +90,19 @@ func StatsViewer(w http.ResponseWriter, r *http.Request) {
     }
 
     respondWithJSON(w, string(json))
+  })
+}
+
+func findUrlAndExecute(
+  w http.ResponseWriter,
+  r *http.Request,
+  executor func(*urls.Url),
+) {
+  path := strings.Split(r.URL.Path, "/")
+  id := path[len(path) -1]
+
+  if url := urls.Search(id); url != nil {
+    executor(url)
   } else {
     http.NotFound(w, r)
   }
