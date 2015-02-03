@@ -15,10 +15,12 @@ import (
 var (
   port    int
   urlBase string
+  verbose bool
 )
 
 func init() {
   flag.IntVar(&port, "p", 8888 , "to set a custom port")
+  flag.BoolVar(&verbose, "v", false , "to print some log")
   urlBase = fmt.Sprintf("http://localhost:%d", port)
 
   flag.Parse()
@@ -142,5 +144,7 @@ func newStatistic(ids <-chan string) {
 }
 
 func printLog(format string, values ...interface{}) {
-  log.Printf(fmt.Sprintf("%s\n", format), values...)
+  if verbose {
+    log.Printf(fmt.Sprintf("%s\n", format), values...)
+  }
 }
