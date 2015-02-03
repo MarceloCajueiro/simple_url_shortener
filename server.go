@@ -9,7 +9,7 @@ import (
   "encoding/json"
   "flag"
 
-  "github.com/marcelocajueiro/url_shortener/urls"
+  "github.com/marcelocajueiro/simple_url_shortener/urls"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 )
 
 func init() {
-  flag.IntVar(&port, "p", 8888 , "port")
+  flag.IntVar(&port, "p", 8888 , "to set a custom port")
   urlBase = fmt.Sprintf("http://localhost:%d", port)
 
   flag.Parse()
