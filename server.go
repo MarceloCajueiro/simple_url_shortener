@@ -7,6 +7,7 @@ import (
   "strings"
   "time"
   "encoding/json"
+  "flag"
 
   "github.com/marcelocajueiro/url_shortener/urls"
 )
@@ -17,8 +18,10 @@ var (
 )
 
 func init() {
-  port    = 8888
+  flag.IntVar(&port, "p", 8888 , "port")
   urlBase = fmt.Sprintf("http://localhost:%d", port)
+
+  flag.Parse()
 }
 
 func main() {
