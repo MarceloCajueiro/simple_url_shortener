@@ -142,6 +142,5 @@ func newStatistic(ids <-chan string) {
 }
 
 func printLog(format string, values ...interface{}) {
-  // log.Printf("Testando %d %d %d", 1, 2, 3)
   log.Printf(fmt.Sprintf("%s\n", format), values...)
 }
